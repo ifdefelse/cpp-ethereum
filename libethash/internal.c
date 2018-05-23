@@ -486,7 +486,8 @@ static bool ethash_hash(
 	ethash_light_t const light,
 	uint64_t full_size,
 	ethash_h256_t const header_hash,
-	uint64_t const nonce
+	uint64_t const nonce,
+	uint64_t const blockNumber
 )
 {
     
@@ -509,7 +510,7 @@ static bool ethash_hash(
 
     if(!full_nodes){
         printf("Error, the client does not support light node at the moment\n");
-        //printf("random output, do not trust! light %d full_size %d\n", (uint32_t) light, (uint32_t)full_size);
+	//printf("random output, do not trust! light %d full_size %d\n", (uint32_t) light, (uint32_t)full_size);
         exit(1);
     }
 
@@ -528,7 +529,13 @@ static bool ethash_hash(
     uint32_t dagWords = (unsigned)(full_size / ETHASH_MIX_BYTES);
     // execute the randomly generated inner loop
     for (int i = 0; i < PROGPOW_CNT_MEM; i++)
-        progPowLoop(light->block_number, i, mix, g_dag, c_dag, dagWords);
+    {
+    	if(full_nodes)
+		progPowLoop(blockNumber, i, mix, g_dag, c_dag, dagWords);
+	else
+		progPowLoop(light->block_number, i, mix, g_dag, c_dag, dagWords);
+    }
+
 
     // Reduce mix data to a single per-lane result
     uint32_t lane_hash[PROGPOW_LANES];
@@ -707,7 +714,7 @@ ethash_return_value_t ethash_light_compute_internal(
 {
   	ethash_return_value_t ret;
 	ret.success = true;
-	if (!ethash_hash(&ret, NULL, light, full_size, header_hash, nonce)) {
+	if (!ethash_hash(&ret, NULL, light, full_size, header_hash, nonce, 0)) {
 		ret.success = false;
 	}
 	return ret;
@@ -861,7 +868,8 @@ void ethash_full_delete(ethash_full_t full)
 ethash_return_value_t ethash_full_compute(
 	ethash_full_t full,
 	ethash_h256_t const header_hash,
-	uint64_t nonce
+	uint64_t nonce,
+	uint64_t blockNumber
 )
 {
 	ethash_return_value_t ret;
@@ -872,7 +880,8 @@ ethash_return_value_t ethash_full_compute(
 		NULL,
 		full->file_size,
 		header_hash,
-		nonce)) {
+		nonce,
+		blockNumber)) {
 		ret.success = false;
 	}
 	return ret;

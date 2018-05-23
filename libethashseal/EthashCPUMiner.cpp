@@ -64,6 +64,7 @@ void EthashCPUMiner::workLoop()
 	ethash_return_value ethashReturn;
 
 	WorkPackage w = work();
+	uint64_t blockNumber = EthashAux::number(w.seedHash);
 
 	EthashAux::FullType dag;
 	while (!shouldStop() && !dag)
@@ -72,12 +73,11 @@ void EthashCPUMiner::workLoop()
 			this_thread::sleep_for(chrono::milliseconds(500));
 		dag = EthashAux::full(w.seedHash, false);
 	}
-
 	h256 boundary = w.boundary;
 	unsigned hashCount = 1;
 	for (; !shouldStop(); tryNonce++, hashCount++)
 	{
-		ethashReturn = ethash_full_compute(dag->full, *(ethash_h256_t*)w.headerHash().data(), tryNonce);
+		ethashReturn = ethash_full_compute(dag->full, *(ethash_h256_t*)w.headerHash().data(), tryNonce, blockNumber);
 		h256 value = h256((uint8_t*)&ethashReturn.result, h256::ConstructFromPointer);
 		if (value <= boundary && submitProof(EthashProofOfWork::Solution{(h64)(u64)tryNonce, h256((uint8_t*)&ethashReturn.mix_hash, h256::ConstructFromPointer)}))
 			break;

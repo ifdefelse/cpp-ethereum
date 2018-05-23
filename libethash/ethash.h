@@ -126,7 +126,8 @@ void ethash_full_delete(ethash_full_t full);
 ethash_return_value_t ethash_full_compute(
 	ethash_full_t full,
 	ethash_h256_t const header_hash,
-	uint64_t nonce
+	uint64_t nonce,
+	uint64_t blockNumber
 );
 /**
  * Get a pointer to the full DAG data
