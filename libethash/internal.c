@@ -552,15 +552,11 @@ static bool ethash_hash(
         fnv1a(&result[l%4], lane_hash[l]);
 
     
-    memcpy(&ret->result, result, sizeof(result));
-    memset((char *)&ret->result + sizeof(result), 0, sizeof(ret->result)-sizeof(result));
-
-    memcpy(&ret->mix_hash, mix, 32);
-
-    //// keccak(header .. keccak(header..nonce) .. result);
-    //return (keccak_f800(header, seed, result) <= target);
-
-
+    memset((void *)&ret->mix_hash, 0, sizeof(ret->mix_hash));
+    memcpy(&ret->mix_hash, result, sizeof(result));   
+    memset((void *)&ret->result, 0, sizeof(ret->result));
+    keccak_f800(header, seed, result);
+    memcpy((void *)&ret->result, (void *)&header, sizeof(ret->result));
 
 
 //	if (full_size % MIX_WORDS != 0) {
