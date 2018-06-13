@@ -57,8 +57,8 @@ option(HUNTER_RUN_UPLOAD "Upload binaries to the cache server" ${run_upload})
 
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.20.73.tar.gz"
-    SHA1 "5cd594b2bb12b2d66983a40b230f760187abbe5a"
+    URL "https://github.com/ruslo/hunter/archive/v0.21.16.tar.gz"
+    SHA1 "aa1faccd24f33dd2c368f85a4e9ca2e5d9c249cb"
     LOCAL
 )
 
@@ -71,7 +71,7 @@ endif()
 
 cable_set_build_type(DEFAULT RelWithDebInfo CONFIGURATION_TYPES Debug;Release;RelWithDebInfo)
 
-cable_add_buildinfo_library(PREFIX eth)
+cable_add_buildinfo_library(PREFIX aleth)
 
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
 
@@ -134,8 +134,6 @@ add_subdirectory(libdevcore)
 add_subdirectory(libdevcrypto)
 add_subdirectory(libp2p)
 
-add_subdirectory(libethash)
-
 add_subdirectory(libethcore)
 add_subdirectory(libevm)
 add_subdirectory(libethereum)
@@ -148,7 +146,7 @@ if (EVMJIT)
     add_subdirectory(evmjit)
 endif()
 
-add_subdirectory(eth)
+add_subdirectory(aleth)
 
 if (TOOLS)
     add_subdirectory(ethkey)
