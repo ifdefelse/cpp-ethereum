@@ -110,22 +110,13 @@ void VM::caseCreate()
     m_runGas = VMSchedule::createGas;
 
     // Collect arguments.
-    u256 endowment = m_SP[0];
-    u256 salt;
-    u256 initOff;
-    u256 initSize;
+    u256 const endowment = m_SP[0];
+    u256 const initOff = m_SP[1];
+    u256 const initSize = m_SP[2];
 
-    if (m_OP == Instruction::CREATE)
-    {
-        initOff = m_SP[1];
-        initSize = m_SP[2];
-    }
-    else
-    {
-        salt = m_SP[1];
-        initOff = m_SP[2];
-        initSize = m_SP[3];
-    }
+    u256 salt;
+    if (m_OP == Instruction::CREATE2)
+        salt = m_SP[3];
 
     updateMem(memNeed(initOff, initSize));
     updateIOGas();
@@ -149,9 +140,10 @@ void VM::caseCreate()
 
         msg.input_data = &m_mem[off];
         msg.input_size = size;
+        msg.create2_salt = toEvmC(salt);
         msg.sender = m_message->destination;
         msg.depth = m_message->depth + 1;
-        msg.kind = EVMC_CREATE;  // FIXME: In EVM-C move the kind to the top.
+        msg.kind = m_OP == Instruction::CREATE ? EVMC_CREATE : EVMC_CREATE2;  // FIXME: In EVMC move the kind to the top.
         msg.value = toEvmC(endowment);
 
         evmc_result result;
