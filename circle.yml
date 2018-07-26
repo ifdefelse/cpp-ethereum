@@ -46,12 +46,12 @@ defaults:
       working_directory: ~/build
       command: |
         ETHEREUM_TEST_PATH=~/project/test/jsontests \
-        test/testeth -t GeneralStateTests -- --vm interpreter
+        test/testeth -t GeneralStateTests -- --vm libaleth-interpreter/libaleth-interpreter.so
 
   store-package: &store-package
     store_artifacts:
-      path: ~/build/cpp-ethereum.tar.gz
-      destination: cpp-ethereum.tar.gz
+      path: ~/build/aleth.tar.gz
+      destination: aleth.tar.gz
 
   store-randomcode-seed: &store-randomcode-seed
     store_artifacts:
@@ -122,6 +122,7 @@ jobs:
       - GENERATOR: Ninja
       - BUILD_PARALLEL_JOBS: 8
       - TEST_PARALLEL_JOBS: 8
+      - CMAKE_OPTIONS: -DALETH_INTERPRETER_SHARED=ON
     docker:
       - image: ethereum/cpp-build-env:2
     steps:
@@ -169,7 +170,6 @@ jobs:
       - *save-deps-cache
       - *store-package
       - *test
-      - *test-evmc-interpreter
       - *upload-coverage-data
 
   macos-xcode90:
@@ -204,7 +204,7 @@ jobs:
 # TODO: Separate builds from testing jobs.
 workflows:
   version: 2
-  cpp-ethereum:
+  aleth:
     jobs:
       - macos-xcode90
       - linux-clang6

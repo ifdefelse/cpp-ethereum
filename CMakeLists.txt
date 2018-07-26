@@ -1,26 +1,6 @@
-#------------------------------------------------------------------------------
-# Top-level CMake file for cpp-ethereum.
-#
-# The documentation for cpp-ethereum is hosted at http://cpp-ethereum.org
-#
-# ------------------------------------------------------------------------------
-# This file is part of cpp-ethereum.
-#
-# cpp-ethereum is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# cpp-ethereum is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>
-#
-# (c) 2014-2016 cpp-ethereum contributors.
-#------------------------------------------------------------------------------
+# Aleth: Ethereum C++ client, tools and libraries.
+# Copyright 2018 Aleth Autors.
+# Licensed under the GNU General Public License, Version 3. See the LICENSE file.
 
 cmake_minimum_required(VERSION 3.5.1)
 
@@ -30,12 +10,16 @@ include(CableBuildType)
 include(CableToolchains)
 include(GNUInstallDirs)
 
-cable_configure_toolchain(DEFAULT cxx11)
+if(UNIX)
+    # Build deps with PIC to allow building shared libraries.
+    set(toolchain cxx11-pic)
+else()
+    set(toolchain cxx11)
+endif()
+cable_configure_toolchain(DEFAULT ${toolchain})
 
 set(ETH_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake" CACHE PATH "The path to the cmake directory")
 list(APPEND CMAKE_MODULE_PATH ${ETH_CMAKE_DIR})
-
-set(CPP_ETHEREUM_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Path to the root directory for cpp-ethereum")
 
 # Map current configuration to configurations of imported targets.
 set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG Release)
@@ -62,8 +46,8 @@ HunterGate(
     LOCAL
 )
 
-project(cpp-ethereum)
-set(PROJECT_VERSION 1.4.0.dev0)
+project(aleth)
+set(PROJECT_VERSION 1.4.0.dev1)
 
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/evmjit/.git)
     message(FATAL_ERROR "Git submodules not initialized, execute:\n  git submodule update --init")
@@ -130,6 +114,9 @@ endif()
 #Global include path for all libs.
 include_directories("${CMAKE_SOURCE_DIR}")
 
+option(ALETH_INTERPRETER_SHARED "Build aleth-interpreter as a shared library" OFF)
+add_subdirectory(libaleth-interpreter)
+
 add_subdirectory(libdevcore)
 add_subdirectory(libdevcrypto)
 add_subdirectory(libp2p)
@@ -149,8 +136,8 @@ endif()
 add_subdirectory(aleth)
 
 if (TOOLS)
-    add_subdirectory(ethkey)
-    add_subdirectory(ethvm)
+    add_subdirectory(aleth-key)
+    add_subdirectory(aleth-vm)
     add_subdirectory(rlp)
 endif()
 

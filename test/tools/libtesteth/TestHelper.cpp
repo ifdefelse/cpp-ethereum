@@ -23,6 +23,7 @@
 #include "TestOutputHelper.h"
 #include "wast2wasm.h"
 
+#include <libdevcore/JsonUtils.h>
 #include <libethashseal/EthashCPUMiner.h>
 #include <libethereum/Client.h>
 
@@ -42,29 +43,24 @@ namespace dev
 {
 namespace eth
 {
-
-void mine(Client& c, int numBlocks)
+void mine(Client& _c, int _numBlocks)
 {
-    auto startBlock = c.blockChain().details().number;
+    int sealedBlocks = 0;
+    auto sealHandler = _c.setOnBlockSealed([_numBlocks, &sealedBlocks, &_c](bytes const&) {
+        if (++sealedBlocks == _numBlocks)
+            _c.stopSealing();
+    });
 
-    c.startSealing();
-    while (c.blockChain().details().number < startBlock + numBlocks)
-        this_thread::sleep_for(chrono::milliseconds(100));
-    c.stopSealing();
-}
+    int importedBlocks = 0;
+    std::promise<void> allBlocksImported;
+    auto importHandler =
+        _c.setOnBlockImport([_numBlocks, &importedBlocks, &allBlocksImported](BlockHeader const&) {
+            if (++importedBlocks == _numBlocks)
+                allBlocksImported.set_value();
+        });
 
-void connectClients(Client& c1, Client& c2)
-{
-    (void)c1;
-    (void)c2;
-// TODO: Move to WebThree. eth::Client no longer handles networking.
-#if 0
-	short c1Port = 20000;
-	short c2Port = 21000;
-	c1.startNetwork(c1Port);
-	c2.startNetwork(c2Port);
-	c2.connect("127.0.0.1", c1Port);
-#endif
+    _c.startSealing();
+    allBlocksImported.get_future().wait();
 }
 
 void mine(Block& s, BlockChain const& _bc, SealEngineFace* _sealer)
@@ -578,29 +574,6 @@ void checkCallCreates(
             _resultCallCreates[i].receiveAddress() == _expectedCallCreates[i].receiveAddress());
         BOOST_CHECK(_resultCallCreates[i].gas() == _expectedCallCreates[i].gas());
         BOOST_CHECK(_resultCallCreates[i].value() == _expectedCallCreates[i].value());
-    }
-}
-
-string jsonTypeAsString(json_spirit::Value_type _type)
-{
-    switch (_type)
-    {
-    case json_spirit::obj_type:
-        return "json Object";
-    case json_spirit::array_type:
-        return "json Array";
-    case json_spirit::str_type:
-        return "json String";
-    case json_spirit::bool_type:
-        return "json Bool";
-    case json_spirit::int_type:
-        return "json Int";
-    case json_spirit::real_type:
-        return "json Real";
-    case json_spirit::null_type:
-        return "json Null";
-    default:
-        return "json n/a";
     }
 }
 
